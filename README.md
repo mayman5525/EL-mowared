@@ -1,2 +1,3 @@
 # EL-mowared
-this is EL-mwared back end structure that connects the supplier with the row material customers all over egypt
+
+this is EL-mowared back end structure that connects the customers with the row material suppliers all over egypt
