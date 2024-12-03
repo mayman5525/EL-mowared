@@ -14,17 +14,16 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(
-    process.env.PG_NAME,
-    process.env.PG_USER,
-    process.env.PG_PASS,
-    {
-      host: process.env.PG_HOST,
-      port: process.env.PG_PORT,
-      dialect: "postgres",
-      logging: false,
-    }
-  );
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // This allows self-signed certificates
+      },
+    },
+  });
 }
 
 async function testConnection() {
