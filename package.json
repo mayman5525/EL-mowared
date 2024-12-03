@@ -2,7 +2,7 @@
   "name": "elmowared1",
   "version": "1.0.0",
   "description": "",
-  "main": "inex.js",
+  "main": "app.js",
   "scripts": {
     "test": "npm test",
     "sequelize": "sequelize-cli",
