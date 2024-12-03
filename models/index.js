@@ -6,36 +6,20 @@ const Sequelize = require("sequelize");
 const process = require("process");
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || "development";
-const config = require(__dirname + "/../config/config.json")[env];
+const config = require(__dirname + "/../config/config.js")[env];
 const db = {};
-require("dotenv").config(); // Load .env variables
 
 let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: "postgres",
-    logging: false,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false, // This allows self-signed certificates
-      },
-    },
-  });
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
 }
-
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-}
-
-testConnection();
 
 fs.readdirSync(__dirname)
   .filter((file) => {
@@ -44,7 +28,7 @@ fs.readdirSync(__dirname)
       file !== basename &&
       file.slice(-3) === ".js" &&
       file.indexOf(".test.js") === -1 &&
-      file !== "index_relations.js" // Exclude index_relations.js from model loading
+      file !== "index_relations.js" // Exclude the relations file from initial loading
     );
   })
   .forEach((file) => {
@@ -53,18 +37,18 @@ fs.readdirSync(__dirname)
       Sequelize.DataTypes
     );
     db[model.name] = model;
-    console.log(`Loaded model: ${model.name}`); // Debugging line
   });
 
-// Load relationships after models are loaded
+// Define associations after all models are loaded
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
 });
 
-// Setup relationships
-require("./index_relations")(db);
+// Now load and apply relations
+const defineRelations = require("./index_relations");
+defineRelations(db);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
