@@ -6,6 +6,7 @@ const cors = require("cors");
 const jest = require("jest");
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const db = require("./models/index");
 // Update the Sequelize configuration to use environment variables
