@@ -6,6 +6,9 @@ class SubcategoryController {
     try {
       const { name, categoryId, subcategory_photo } = req.body;
 
+      // Log input data
+      console.log("Input data:", { name, categoryId, subcategory_photo });
+
       // Validate that the category exists
       const category = await Category.findByPk(categoryId);
       if (!category) {
@@ -29,6 +32,9 @@ class SubcategoryController {
         subcategory,
       });
     } catch (error) {
+      // Log the error details
+      console.error("Error creating subcategory:", error);
+
       res.status(400).json({
         message: "Error creating subcategory",
         error: error.message,
@@ -39,24 +45,19 @@ class SubcategoryController {
   // Get all Subcategories with optional filtering
   static async getAllSubcategories(req, res) {
     try {
-      const { page = 1, limit = 10, categoryId, lang = "en" } = req.query;
+      const { page = 1, limit = 10 } = req.query;
 
       const options = {
         include: [
           {
             model: Category,
-            attributes: ["id", `name_${lang}`],
+            attributes: ["name"],
           },
         ],
         order: [["createdAt", "DESC"]],
         offset: (page - 1) * limit,
         limit: Number(limit),
       };
-
-      // Add optional category filter
-      if (categoryId) {
-        options.where = { CategoryId: categoryId };
-      }
 
       const { count, rows: subcategories } = await Subcategory.findAndCountAll(
         options
@@ -66,12 +67,7 @@ class SubcategoryController {
         total: count,
         page: Number(page),
         pageSize: subcategories.length,
-        subcategories: subcategories.map((sc) => ({
-          id: sc.id,
-          name: sc.name[lang] || sc.name.en,
-          categoryName: sc.Category ? sc.Category[`name_${lang}`] : null,
-          subcategory_photo: sc.subcategory_photo,
-        })),
+        subcategories: subcategories,
       });
     } catch (error) {
       res.status(500).json({
@@ -85,13 +81,12 @@ class SubcategoryController {
   static async getSubcategoryById(req, res) {
     try {
       const { id } = req.params;
-      const { lang = "en" } = req.query;
 
       const subcategory = await Subcategory.findByPk(id, {
         include: [
           {
             model: Category,
-            attributes: ["id", `name_${lang}`],
+            attributes: ["id", `name`],
           },
         ],
       });
@@ -111,7 +106,7 @@ class SubcategoryController {
         subcategory_photo: subcategory.subcategory_photo,
         category: {
           id: subcategory.Category.id,
-          name: subcategory.Category[`name_${lang}`],
+          name: subcategory.Category[`name`],
         },
       });
     } catch (error) {

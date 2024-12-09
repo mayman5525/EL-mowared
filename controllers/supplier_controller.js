@@ -1,78 +1,157 @@
-const { Supplier, Product } = require("../models");
+const { Model } = require("sequelize");
+const { Supplier, Product, reviews } = require("../models");
 const cloudinary = require("cloudinary").v2; // Assuming you are using Cloudinary for image upload
-const multer = require("multer");
-class SuppliersController {
-  // Create a new supplier
-  static async createSupplier(req, res) {
-    try {
-      const { name, about, profilePhoto, services } = req.body;
+const { Op } = require("sequelize");
 
-      // Create a new supplier
-      const supplier = await Supplier.create(
-        {
-          name,
-          about,
-          profilePhoto,
-          services,
-        },
-        {
-          // Include related products in the supplier creation
-          include: [
-            {
-              model: Product, // The associated Product model
-            },
-          ],
-        }
-      );
+class SuppliersController {
+  /*
+  the request parameter should include the id of the supplier
+  the request body should look like 
+  {
+  "content" : "this supplier is the best in his industry",
+  "rating" : 4 
+  } 
+  */
+  // Create a supplier review
+  async createSupplierReview(req, res) {
+    try {
+      const { supplierId } = req.params;
+      const { content, rating } = req.body;
+
+      // Validate input
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({
+          message: "Rating must be between 1 and 5",
+        });
+      }
+
+      // Validate supplier exists
+      const supplier = await Supplier.findByPk(supplierId);
+      if (!supplier) {
+        return res.status(404).json({
+          message: "Supplier not found",
+        });
+      }
+
+      // Create review
+      const review = await reviews.create({
+        supplierId,
+        content,
+        rating,
+      });
+
+      res.status(201).json({
+        message: "Review created successfully",
+        review,
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: "Error creating review",
+        error: error.message,
+      });
+    }
+  }
+
+  /*
+  the request parameter should include the id of the supplier
+  the request body should look like 
+  {
+  "name" : "hamed",
+  "about" : "hamed elgamed",
+  "profilePhoto" : "",
+  "services":["i do provide a cash back guarantee " , "i support payment through vodafone cash and insta pay"],
+  "supplierIndustries" : "i work in the chemical industry since 2012" 
+  } 
+  */
+  async createSupplier(req, res) {
+    try {
+      const { name, about, supplerIndustries, profilePhoto, services } =
+        req.body;
+
+      // Validate required fields
+      if (!name || (!name.en && !name.ar)) {
+        return res.status(400).json({
+          message: "At least one language name is required",
+        });
+      }
+
+      // Create supplier
+      const newSupplier = await Supplier.create({
+        name,
+        about: about || {},
+        supplerIndustries,
+        profilePhoto,
+        services: services || {},
+        is_verified: false, // Default to unverified
+        is_active: true,
+      });
 
       res.status(201).json({
         message: "Supplier created successfully",
-        supplier,
+        supplier: newSupplier,
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(400).json({
         message: "Error creating supplier",
         error: error.message,
       });
     }
   }
 
-  // Get a supplier by ID
-  static async getSupplierById(req, res) {
+  // Get a specific supplier by ID with detailed information
+  async getSupplierById(req, res) {
     try {
       const { id } = req.params;
 
+      // Fetch supplier with associated products and reviews
       const supplier = await Supplier.findByPk(id, {
-        include: [{ model: Product }],
+        include: [
+          {
+            model: Product,
+            attributes: ["id", "name", "description", "productPhoto"],
+          },
+          {
+            model: reviews,
+            attributes: ["id", "content", "rating", "createdAt"],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
       });
 
       if (!supplier) {
-        return res.status(404).json({ message: "Supplier not found" });
+        return res.status(404).json({
+          message: "Supplier not found",
+        });
       }
 
-      const response = {
-        id: supplier.id,
-        name: supplier.name,
-        about: supplier.about,
-        profilePhoto: supplier.profilePhoto || null,
-        services: supplier.services || { en: "", ar: "" },
-        products: supplier.Products || [],
-      };
+      // Convert to JSON and add calculated fields
+      const supplierJson = supplier.toJSON();
+      const reviews = supplierJson.reviews || [];
 
-      res.json(response);
+      // Calculate average rating
+      supplierJson.averageRating =
+        reviews.length > 0
+          ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviews.length
+          : 0;
+
+      supplierJson.totalReviews = reviews.length;
+
+      res.json(supplierJson);
     } catch (error) {
       res.status(500).json({
-        message: "Error fetching supplier",
+        message: "Error fetching supplier details",
         error: error.message,
       });
     }
   }
 
   // Update a supplier by ID
-  static async updateSupplier(req, res) {
+  async updateSupplier(req, res) {
     try {
       const { id } = req.params;
-      const { name, about, profilePhoto, services } = req.body;
+      const { name, about, profilePhoto, services, is_verified, is_active } =
+        req.body;
 
       // Find the supplier by ID
       const supplier = await Supplier.findByPk(id);
@@ -85,6 +164,8 @@ class SuppliersController {
       supplier.about = about || supplier.about;
       supplier.profilePhoto = profilePhoto || supplier.profilePhoto;
       supplier.services = services || supplier.services;
+      supplier.is_verified = is_verified || supplier.is_verified;
+      supplier.is_active = is_active || supplier.is_active;
 
       // Save the updated supplier
       await supplier.save();
@@ -101,22 +182,66 @@ class SuppliersController {
     }
   }
   // Get all suppliers
-  static async getAllSuppliers(req, res) {
+  async getAllSuppliers(req, res) {
     try {
-      const suppliers = await Supplier.findAll({
-        include: [{ model: Product }],
+      const { page = 1, limit = 10, search, isVerified } = req.query;
+
+      // Build where clause based on query parameters
+      const whereClause = {};
+
+      // Search across name in both languages
+      if (search) {
+        whereClause[Op.or] = [
+          { "name.en": { [Op.iLike]: `%${search}%` } },
+          { "name.ar": { [Op.iLike]: `%${search}%` } },
+        ];
+      }
+
+      // Filter by verification status
+      if (isVerified !== undefined) {
+        whereClause.is_verified = isVerified === "true";
+      }
+
+      // Fetch suppliers with pagination and include reviews
+      const suppliers = await Supplier.findAndCountAll({
+        where: whereClause,
+        limit: parseInt(limit),
+        offset: (page - 1) * limit,
+        include: [
+          {
+            model: Product,
+            attributes: ["id", "name"],
+          },
+          {
+            model: reviews,
+            attributes: ["id", "content", "rating", "createdAt"],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
       });
 
-      const response = suppliers.map((supplier) => ({
-        id: supplier.id,
-        name: supplier.name,
-        about: supplier.about,
-        profilePhoto: supplier.profilePhoto || null,
-        services: supplier.services || { en: "", ar: "" },
-        products: supplier.Products || [],
-      }));
+      // Calculate average rating for each supplier
+      const suppliersWithAvgRating = suppliers.rows.map((supplier) => {
+        const supplierJson = supplier.toJSON();
+        const reviews = supplierJson.reviews || [];
 
-      res.json(response);
+        supplierJson.averageRating =
+          reviews.length > 0
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+              reviews.length
+            : 0;
+
+        supplierJson.totalReviews = reviews.length;
+
+        return supplierJson;
+      });
+
+      res.json({
+        total: suppliers.count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        suppliers: suppliersWithAvgRating,
+      });
     } catch (error) {
       res.status(500).json({
         message: "Error fetching suppliers",
@@ -126,7 +251,7 @@ class SuppliersController {
   }
 
   // Delete a supplier by ID
-  static async deleteSupplier(req, res) {
+  async deleteSupplier(req, res) {
     try {
       const { id } = req.params;
 
@@ -151,7 +276,7 @@ class SuppliersController {
   }
 
   // Upload profile photo to Cloudinary
-  static async uploadProfilePhoto(req, res) {
+  async uploadProfilePhoto(req, res) {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -184,4 +309,4 @@ class SuppliersController {
   }
 }
 
-module.exports = SuppliersController;
+module.exports = new SuppliersController(); // Ensure the class is instantiated

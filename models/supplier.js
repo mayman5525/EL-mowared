@@ -96,6 +96,10 @@ module.exports = (sequelize, DataTypes) => {
           }
         },
       },
+      supplerIndustries: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       profilePhoto: {
         type: DataTypes.STRING,
         validate: {
@@ -153,6 +157,14 @@ module.exports = (sequelize, DataTypes) => {
           }
         },
       },
+      is_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+      },
     },
     {
       hooks: {
@@ -182,6 +194,7 @@ module.exports = (sequelize, DataTypes) => {
   // Add associations
   Supplier.associate = (models) => {
     Supplier.hasMany(models.Product);
+    Supplier.hasMany(models.reviews);
   };
 
   return Supplier;

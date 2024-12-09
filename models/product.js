@@ -1,3 +1,5 @@
+const { types } = require("pg");
+
 module.exports = (sequelize, DataTypes) => {
   const Product = sequelize.define(
     "Product",
@@ -5,98 +7,98 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.JSONB,
         allowNull: false,
-        validate: {
-          validateMultiLangName(value) {
-            if (!value || typeof value !== "object") {
-              throw new Error("Name must be a JSON object with language keys");
-            }
+        // validate: {
+        //   validateMultiLangName(value) {
+        //     if (!value || typeof value !== "object") {
+        //       throw new Error("Name must be a JSON object with language keys");
+        //     }
 
-            // Ensure at least one language is present
-            if (!value.en && !value.ar) {
-              throw new Error(
-                "At least one language (en or ar) must be provided"
-              );
-            }
+        //     // Ensure at least one language is present
+        //     if (!value.en && !value.ar) {
+        //       throw new Error(
+        //         "At least one language (en or ar) must be provided"
+        //       );
+        //     }
 
-            // Optional: Validate string length
-            if (value.en && value.en.length > 255) {
-              throw new Error("English name must be 255 characters or less");
-            }
+        //     // Optional: Validate string length
+        //     if (value.en && value.en.length > 255) {
+        //       throw new Error("English name must be 255 characters or less");
+        //     }
 
-            if (value.ar && value.ar.length > 255) {
-              throw new Error("Arabic name must be 255 characters or less");
-            }
-          },
-        },
-        get() {
-          const value = this.getDataValue("name");
-          return value || { en: "", ar: "" };
-        },
-        set(value) {
-          // Ensure value is an object with language keys
-          if (typeof value === "string") {
-            // If a single string is passed, assume it's English
-            this.setDataValue("name", { en: value, ar: "" });
-          } else if (typeof value === "object") {
-            // Merge with existing values to allow partial updates
-            const existingName = this.getDataValue("name") || {};
-            this.setDataValue("name", {
-              en: value.en || existingName.en || "",
-              ar: value.ar || existingName.ar || "",
-            });
-          } else {
-            throw new Error(
-              "Name must be a string or an object with language keys"
-            );
-          }
-        },
+        //     if (value.ar && value.ar.length > 255) {
+        //       throw new Error("Arabic name must be 255 characters or less");
+        //     }
+        //   },
+        // },
+        // get() {
+        //   const value = this.getDataValue("name");
+        //   return value || { en: "", ar: "" };
+        // },
+        // set(value) {
+        //   // Ensure value is an object with language keys
+        //   if (typeof value === "string") {
+        //     // If a single string is passed, assume it's English
+        //     this.setDataValue("name", { en: value, ar: "" });
+        //   } else if (typeof value === "object") {
+        //     // Merge with existing values to allow partial updates
+        //     const existingName = this.getDataValue("name") || {};
+        //     this.setDataValue("name", {
+        //       en: value.en || existingName.en || "",
+        //       ar: value.ar || existingName.ar || "",
+        //     });
+        //   } else {
+        //     throw new Error(
+        //       "Name must be a string or an object with language keys"
+        //     );
+        //   }
+        // },
       },
       description: {
         type: DataTypes.JSONB,
-        validate: {
-          validateMultiLangDescription(value) {
-            if (value && typeof value !== "object") {
-              throw new Error(
-                "Description must be a JSON object with language keys"
-              );
-            }
+        // validate: {
+        //   validateMultiLangDescription(value) {
+        //     if (value && typeof value !== "object") {
+        //       throw new Error(
+        //         "Description must be a JSON object with language keys"
+        //       );
+        //     }
 
-            // Optional: Add length validation for descriptions
-            if (value?.en && value.en.length > 2000) {
-              throw new Error(
-                "English description must be 2000 characters or less"
-              );
-            }
+        //     // Optional: Add length validation for descriptions
+        //     if (value?.en && value.en.length > 2000) {
+        //       throw new Error(
+        //         "English description must be 2000 characters or less"
+        //       );
+        //     }
 
-            if (value?.ar && value.ar.length > 2000) {
-              throw new Error(
-                "Arabic description must be 2000 characters or less"
-              );
-            }
-          },
-        },
-        get() {
-          const value = this.getDataValue("description");
-          return value || { en: "", ar: "" };
-        },
-        set(value) {
-          // Similar to name setter, but with more flexibility
-          if (typeof value === "string") {
-            // If a single string is passed, assume it's English
-            this.setDataValue("description", { en: value, ar: "" });
-          } else if (typeof value === "object" || value === null) {
-            // Merge with existing values to allow partial updates
-            const existingDescription = this.getDataValue("description") || {};
-            this.setDataValue("description", {
-              en: value?.en || existingDescription.en || "",
-              ar: value?.ar || existingDescription.ar || "",
-            });
-          } else {
-            throw new Error(
-              "Description must be a string or an object with language keys"
-            );
-          }
-        },
+        //     if (value?.ar && value.ar.length > 2000) {
+        //       throw new Error(
+        //         "Arabic description must be 2000 characters or less"
+        //       );
+        //     }
+        //   },
+        // },
+        // get() {
+        //   const value = this.getDataValue("description");
+        //   return value || { en: "", ar: "" };
+        // },
+        // set(value) {
+        //   // Similar to name setter, but with more flexibility
+        //   if (typeof value === "string") {
+        //     // If a single string is passed, assume it's English
+        //     this.setDataValue("description", { en: value, ar: "" });
+        //   } else if (typeof value === "object" || value === null) {
+        //     // Merge with existing values to allow partial updates
+        //     const existingDescription = this.getDataValue("description") || {};
+        //     this.setDataValue("description", {
+        //       en: value?.en || existingDescription.en || "",
+        //       ar: value?.ar || existingDescription.ar || "",
+        //     });
+        //   } else {
+        //     throw new Error(
+        //       "Description must be a string or an object with language keys"
+        //     );
+        //   }
+        // },
       },
       productFamily: {
         type: DataTypes.STRING,
@@ -106,11 +108,19 @@ module.exports = (sequelize, DataTypes) => {
       },
       stockQuantity: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         validate: {
           min: 0, // Ensure stock quantity is not negative
           isInt: true,
         },
+      },
+      homeCountry: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      size: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       productPhoto: {
         type: DataTypes.STRING,
@@ -148,6 +158,7 @@ module.exports = (sequelize, DataTypes) => {
     Product.belongsTo(models.Category);
     Product.belongsTo(models.Subcategory);
     Product.belongsTo(models.Supplier);
+    Product.hasMany(models.reviews);
   };
 
   return Product;

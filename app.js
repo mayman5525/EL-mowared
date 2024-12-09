@@ -6,12 +6,18 @@ const cors = require("cors");
 const jest = require("jest");
 const app = express();
 app.use(express.json());
-app.use(cors());
+const corsOptions = {
+  origin: ["http://localhost:3000", "https://mowareed.vercel.app"],
+  methods: ["GET", "POST", "PATCH", "DELETE"], // You can adjust the methods as needed
+  allowedHeaders: ["Content-Type", "Authorization"], // Add any other headers as needed
+};
+app.use(cors(corsOptions));
 
 const db = require("./models/index");
 // Update the Sequelize configuration to use environment variables
 db.sequelize
   .sync({
+    alter: true,
     dialectOptions: {
       ssl: {
         require: true,
@@ -24,12 +30,12 @@ db.sequelize
     console.log("Database connected");
   });
 
-const adminRoutes = require("./routes/admin_routes");
+// const adminRoutes = require("./routes/admin_routes");
 const categoryRoutes = require("./routes/category_routes");
 const subcategoryRoutes = require("./routes/subcategorey_routes");
 const productRoutes = require("./routes/product_routes");
 const supplierRoutes = require("./routes/supplier_routes");
-
+const searchRoutes = require("./routes/search_routes");
 app.get("/api/health", async (req, res) => {
   try {
     await db.sequelize.authenticate();
@@ -41,11 +47,12 @@ app.get("/api/health", async (req, res) => {
   }
 });
 // app.use("/admin", adminRoutes);
-app.use("/supplier", supplierRoutes);
-// app.use("/search", searchRoutes);
+// app.use("/supplier", supplierRoutes);
+app.use("/search", searchRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoryRoutes);
 app.use("/subcategories", subcategoryRoutes);
+app.use("/", searchRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {

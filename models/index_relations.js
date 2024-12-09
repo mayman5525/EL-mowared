@@ -19,4 +19,12 @@ module.exports = (db) => {
     db.Supplier.hasMany(db.Product);
     db.Product.belongsTo(db.Supplier);
   }
+  if (db.reviews && db.Product) {
+    db.Product.hasMany(db.reviews);
+    db.reviews.belongsTo(db.Product);
+  }
+  if (db.reviews && db.Supplier) {
+    db.Supplier.hasMany(db.reviews);
+    db.reviews.belongsTo(db.Supplier);
+  }
 };
