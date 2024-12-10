@@ -6,9 +6,6 @@ const {
   reviews,
 } = require("../models");
 const supplier = require("../models/supplier");
-
-const category = require("../models/category");
-const subcategory = require("../models/subcategory");
 const { Op } = require("sequelize");
 
 class ProductController {
@@ -318,6 +315,7 @@ POST /api/products/1/reviews
 */
   async createProductReview(req, res) {
     try {
+      // Extract the productId from req.params
       const { productId } = req.params;
       const { rating, content } = req.body;
 
@@ -335,9 +333,10 @@ POST /api/products/1/reviews
           message: "Product not found",
         });
       }
+
       // Create review
       const newReview = await reviews.create({
-        productId,
+        productId, // Pass the actual productId
         content,
         rating,
       });

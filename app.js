@@ -48,11 +48,11 @@ app.get("/api/health", async (req, res) => {
 });
 // app.use("/admin", adminRoutes);
 // app.use("/supplier", supplierRoutes);
-app.use("/search", searchRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoryRoutes);
 app.use("/subcategories", subcategoryRoutes);
 app.use("/", searchRoutes);
+app.use("/supplier", supplierRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
