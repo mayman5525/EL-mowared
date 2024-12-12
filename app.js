@@ -4,6 +4,7 @@ dotenv.config();
 const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 const jest = require("jest");
+const validationResult = require("express-validator");
 const app = express();
 app.use(express.json());
 const corsOptions = {
