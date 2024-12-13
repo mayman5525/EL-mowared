@@ -4,13 +4,16 @@ module.exports = (sequelize, DataTypes) => {
   const Product = sequelize.define("Product", {
     name_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     name_en: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
-    description: {
+    description_ar: {
+      type: DataTypes.STRING,
+    },
+    description_en: {
       type: DataTypes.STRING,
     },
     productFamily_ar: {
@@ -45,7 +48,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
     size_en: {
       type: DataTypes.STRING,
       allowNull: true,

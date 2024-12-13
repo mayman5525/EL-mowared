@@ -2,17 +2,12 @@ const { Category } = require("../models"); // Import Sequelize models
 
 // Create a category
 const createCategory = async (req, res) => {
-  const { name, Category_photo } = req.body; // Expect 'name' to be an object with 'en' and 'ar'
-
-  if (!name || typeof name !== "object" || !name.en || !name.ar) {
-    return res.status(400).json({
-      message: "'name' must be containing 'en' and 'ar' translations",
-    });
-  }
+  const { name_ar, name_en, Category_photo } = req.body;
 
   try {
     const category = await Category.create({
-      name,
+      name_ar,
+      name_en,
       Category_photo,
     });
 
@@ -34,7 +29,7 @@ const getAllCategories = async (req, res) => {
 // Update a category
 const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name, lang, Category_photo } = req.body; // Expecting 'name', 'lang', and 'Category_photo'
+  const { name_ar, name_en, Category_photo } = req.body; // Expecting 'name', 'lang', and 'Category_photo'
 
   try {
     // Fetch the existing category by id
@@ -43,25 +38,9 @@ const updateCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
-
-    // Validate the language
-    if (!lang || (lang !== "en" && lang !== "ar")) {
-      return res
-        .status(400)
-        .json({ message: "Invalid language code provided" });
-    }
-
-    // Ensure name is provided
-    if (!name) {
-      return res.status(400).json({ message: "'name' is required" });
-    }
-
-    // Update the name field by adding the new value for the specified language
-    const updatedName = { ...category.name, [lang]: name };
-
     // Perform the update operation
     await Category.update(
-      { name: updatedName, Category_photo },
+      { name_ar: name_ar, name_en: name_en, Category_photo },
       { where: { id } }
     );
 

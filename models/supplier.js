@@ -2,23 +2,23 @@ module.exports = (sequelize, DataTypes) => {
   const Supplier = sequelize.define("Supplier", {
     name_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     name_en: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     about_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     about_en: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     supplerIndustries_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     supplerIndustries_en: {
       type: DataTypes.STRING,
@@ -47,12 +47,12 @@ module.exports = (sequelize, DataTypes) => {
 
     services_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
 
     services_en: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     is_verified: {
       type: DataTypes.BOOLEAN,

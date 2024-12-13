@@ -2,11 +2,11 @@ module.exports = (sequelize, DataTypes) => {
   const Subcategory = sequelize.define("Subcategory", {
     name_ar: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     name_en: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     subcategory_photo: {
       type: DataTypes.STRING,

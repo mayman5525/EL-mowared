@@ -1,13 +1,11 @@
+const { Model } = require("sequelize");
 const { Subcategory, Category } = require("../models");
 
 class SubcategoryController {
   // Create a new Subcategory
   static async createSubcategory(req, res) {
     try {
-      const { name, categoryId, subcategory_photo } = req.body;
-
-      // Log input data
-      console.log("Input data:", { name, categoryId, subcategory_photo });
+      const { name_ar, name_en, categoryId, subcategory_photo } = req.body;
 
       // Validate that the category exists
       const category = await Category.findByPk(categoryId);
@@ -19,10 +17,8 @@ class SubcategoryController {
 
       // Create Subcategory
       const subcategory = await Subcategory.create({
-        name: {
-          en: name.en || "",
-          ar: name.ar || "",
-        },
+        name_ar: name_ar,
+        name_en: name_en,
         CategoryId: categoryId,
         subcategory_photo: subcategory_photo || null,
       });
@@ -42,7 +38,6 @@ class SubcategoryController {
     }
   }
 
-  // Get all Subcategories with optional filtering
   static async getAllSubcategories(req, res) {
     try {
       const { page = 1, limit = 10 } = req.query;
@@ -99,10 +94,8 @@ class SubcategoryController {
 
       res.json({
         id: subcategory.id,
-        name: {
-          en: subcategory.name.en,
-          ar: subcategory.name.ar,
-        },
+        name_ar: subcategory.name_ar,
+        name_en: subcategory.name_en,
         subcategory_photo: subcategory.subcategory_photo,
         category: {
           id: subcategory.Category.id,
@@ -121,7 +114,7 @@ class SubcategoryController {
   static async updateSubcategory(req, res) {
     try {
       const { id } = req.params;
-      const { name, categoryId, subcategory_photo } = req.body;
+      const { name_ar, name_en, categoryId, subcategory_photo } = req.body;
 
       // Find the existing subcategory
       const subcategory = await Subcategory.findByPk(id);
@@ -143,10 +136,8 @@ class SubcategoryController {
 
       // Prepare update data
       const updateData = {
-        name: {
-          en: name?.en || subcategory.name.en,
-          ar: name?.ar || subcategory.name.ar,
-        },
+        name_ar: name_ar || subcategory.name_ar,
+        name_en: name_en || subcategory.name_en,
         CategoryId: categoryId || subcategory.CategoryId,
         subcategory_photo: subcategory_photo || subcategory.subcategory_photo,
       };

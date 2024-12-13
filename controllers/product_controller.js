@@ -7,22 +7,9 @@ const {
 } = require("../models");
 const supplier = require("../models/supplier");
 const { Op } = require("sequelize");
+const uploadPhotos = require("../middleware/uploadPhotos");
 
 class ProductController {
-  // Get all products with flexible filtering and pagination
-  /*
-    GET /products
-    Query Parameters:
-    - page: (optional) number, default is 1
-    - limit: (optional) number, default is 10
-    - search: (optional) string, search by product name in English or Arabic
-    - categoryId: (optional) number, filter by category ID
-    - subcategoryId: (optional) number, filter by subcategory ID
-    - supplierId: (optional) number, filter by supplier ID
-  
-    Example Request:
-    GET /api/products?page=1&limit=5&search=Milk&categoryId=2
-    */
   async getAllProducts(req, res) {
     try {
       const {
@@ -91,16 +78,6 @@ class ProductController {
       });
     }
   }
-
-  // Get a specific product by ID with related products and reviews
-  /*
-    GET /api/products/:id
-    Path Parameter:
-    - id: Product ID to fetch details
-  
-    Example Request:
-    GET /products/1
-    */
   async getProductById(req, res) {
     try {
       const { id } = req.params;
@@ -157,58 +134,41 @@ class ProductController {
       });
     }
   }
-
-  // Create a new product
-  /*
-    POST /api/products
-    Request Body:
-    {
-      "name": { "en": "Product Name", "ar": "اسم المنتج" },
-      "description": { "en": "Description", "ar": "الوصف" },
-      "productFamily": "Family Name",
-      "stockQuantity": 10,
-      "homeCountry": "Country",
-      "size": "Size",
-      "productPhoto": "Photo URL",
-      "categoryId": 1,
-      "subcategoryId": 2,
-      "supplierId": 3
-    }
-  
-    Example Request:
-    POST /products
-    */
   async createProduct(req, res) {
     try {
       const {
-        name,
-        description,
-        productFamily,
+        name_ar,
+        name_en,
+        description_ar,
+        description_en,
+        productFamily_ar,
+        productFamily_en,
         stockQuantity,
-        homeCountry,
-        size,
+        homeCountry_ar,
+        homeCountry_en,
+        size_ar,
+        size_en,
         productPhoto,
         categoryId,
         subcategoryId,
         supplierId,
       } = req.body;
 
-      if (!name || (!name.en && !name.ar)) {
-        return res.status(400).json({
-          message: "At least one language name is required",
-        });
-      }
-
       const newProduct = await Product.create({
-        name,
-        description: description || {},
-        productFamily,
+        name_ar: name_ar,
+        name_en: name_en,
+        description_ar: description_ar || {},
+        description_en: description_en || {},
+        productFamily_ar: productFamily_ar || "",
+        productFamily_en: productFamily_en || "",
         stockQuantity,
-        homeCountry,
-        size,
+        homeCountry_ar: homeCountry_ar || "",
+        homeCountry_en: homeCountry_en || "",
+        size_ar: size_ar || "",
+        size_en: size_en || "",
         productPhoto,
-        CategoryId: categoryId, // Map to Sequelize's field
-        SubcategoryId: subcategoryId, // Map to Sequelize's field
+        CategoryId: categoryId,
+        SubcategoryId: subcategoryId,
         SupplierId: supplierId,
       });
 
@@ -223,22 +183,6 @@ class ProductController {
       });
     }
   }
-
-  // Update an existing product
-  /*
-    PUT /products/:id
-    Path Parameter:
-    - id: Product ID to update
-  
-    Request Body:
-    {
-      "name": { "en": "Updated Name" },
-      "stockQuantity": 20
-    }
-  
-    Example Request:
-    PUT /api/products/1
-    */
   async updateProduct(req, res) {
     try {
       const { id } = req.params;
@@ -264,16 +208,6 @@ class ProductController {
       });
     }
   }
-
-  // Delete a product
-  /*
-    DELETE /api/products/:id
-    Path Parameter:
-    - id: Product ID to delete
-  
-    Example Request:
-    DELETE /api/products/1
-    */
   async deleteProduct(req, res) {
     try {
       const { id } = req.params;
@@ -296,23 +230,6 @@ class ProductController {
       });
     }
   }
-
-  // Create a product review
-  /*
-POST /api/products/:productId/reviews
-Path Parameter:
-- productId: ID of the product to review
-
-Request Body:
-{
-  "userId": 1,
-  "rating": 4,
-  "comment": "Great product!"
-}
-
-Example Request:
-POST /api/products/1/reviews
-*/
   async createProductReview(req, res) {
     try {
       // Extract the productId from req.params
@@ -341,6 +258,89 @@ POST /api/products/1/reviews
         rating,
       });
 
+      res.status(201).json({
+        message: "Review added successfully",
+        review: newReview,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error creating review",
+        error: error.message,
+      });
+    }
+  }
+  //this is not completed yet -------------
+  async assignProductToSupplier(req, res) {
+    try {
+      const { productId, supplierId } = req.body;
+
+      const product = await Product.findByPk(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      const supplier = await Supplier.findByPk(supplierId);
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+
+      await product.setSupplier(supplier);
+
+      res.json({
+        message: "Product assigned to supplier successfully",
+        product,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error assigning product to supplier",
+        error: error.message,
+      });
+    }
+  }
+
+  async addProductPhoto(req, res) {
+    try {
+      const { id } = req.params;
+
+      const product = await Product.findByPk(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      uploadPhotos(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ message: err.message });
+        }
+
+        const photoUrl = req.file.path;
+        product.productPhoto = photoUrl;
+        await product.save();
+
+        res.status(200).json({
+          message: "Photo added successfully",
+          product,
+        });
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error adding photo to product",
+        error: error.message,
+      });
+    }
+  }
+  async createProductReview(req, res) {
+    const { productId } = req.params;
+    const { content, rating } = req.body;
+    try {
+      const product = await product.findByPk(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      const newReview = await reviews.create({
+        productId,
+        content,
+        rating,
+      });
       res.status(201).json({
         message: "Review added successfully",
         review: newReview,

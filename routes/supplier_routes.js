@@ -1,6 +1,5 @@
 const express = require("express");
 const supplierController = require("../controllers/supplier_controller");
-const SuppliersController = require("../controllers/supplier_controller"); // Import the class
 const router = express.Router();
 
 router.get("/", supplierController.getAllSuppliers);

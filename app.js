@@ -5,6 +5,7 @@ const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 const jest = require("jest");
 const validationResult = require("express-validator");
+const multer = require("multer");
 const app = express();
 app.use(express.json());
 const corsOptions = {
@@ -31,12 +32,20 @@ db.sequelize
     console.log("Database connected");
   });
 
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
 // const adminRoutes = require("./routes/admin_routes");
 const categoryRoutes = require("./routes/category_routes");
 const subcategoryRoutes = require("./routes/subcategorey_routes");
 const productRoutes = require("./routes/product_routes");
 const supplierRoutes = require("./routes/supplier_routes");
 const searchRoutes = require("./routes/search_routes");
+const uploadPhoto = require("./middleware/uploadPhotos");
+
 app.get("/api/health", async (req, res) => {
   try {
     await db.sequelize.authenticate();
