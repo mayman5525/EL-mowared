@@ -93,7 +93,7 @@ class SuppliersController {
         supplerIndustries_en: supplerIndustries_en,
         profilePhoto: profilePhoto,
         coverPhoto: coverPhoto,
-        is_verified: is_verified, // Default to unverified
+        is_verified: is_verified,
         is_active: is_active,
       });
 

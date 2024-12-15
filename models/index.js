@@ -52,5 +52,16 @@ defineRelations(db);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+// Import models
+db.Product = require("./product")(sequelize, Sequelize);
+db.Category = require("./category")(sequelize, Sequelize);
+db.Subcategory = require("./subcategory")(sequelize, Sequelize);
+db.Supplier = require("./supplier")(sequelize, Sequelize);
+db.reviews = require("./reviews")(sequelize, Sequelize);
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
 
 module.exports = db;

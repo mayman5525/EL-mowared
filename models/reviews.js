@@ -9,5 +9,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
   });
+
+  // reviews.associate = (models) => {
+  // reviews.belongsTo(models.supplier);
+  // reviews.belongsTo(models.Product);
+  // };
   return reviews;
 };

@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
       },
       allowNull: true,
     },
+    productFamily_ar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    productFamily_en: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   });
 
   // Add associations

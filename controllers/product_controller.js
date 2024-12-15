@@ -39,9 +39,9 @@ class ProductController {
         limit: parseInt(limit),
         offset: (page - 1) * limit,
         include: [
-          { model: Supplier, attributes: ["id", "name"] },
-          { model: Category, attributes: ["id", "name"] },
-          { model: Subcategory, attributes: ["id", "name"] },
+          { model: Supplier, attributes: ["id", "name_ar", "name_en"] },
+          { model: Category, attributes: ["id", "name_ar", "name_en"] },
+          { model: Subcategory, attributes: ["id", "name_ar", "name_en"] },
           {
             model: reviews,
             attributes: ["id", "rating", "content", "createdAt"],
@@ -83,7 +83,7 @@ class ProductController {
       const { id } = req.params;
 
       const baseProduct = await Product.findByPk(id, {
-        attributes: ["productFamily", "subcategoryId", "supplierId"],
+        attributes: ["productFamily_ar", "productFamily_en"],
       });
 
       if (!baseProduct) {
@@ -92,9 +92,9 @@ class ProductController {
 
       const product = await Product.findByPk(id, {
         include: [
-          { model: Supplier, attributes: ["id", "name"] },
-          { model: Category, attributes: ["id", "name"] },
-          { model: Subcategory, attributes: ["id", "name"] },
+          { model: Supplier, attributes: ["id", "name_ar", "name_en"] },
+          { model: Category, attributes: ["id", "name_ar", "name_en"] },
+          { model: Subcategory, attributes: ["id", "name_ar", "name_en"] },
           {
             model: reviews,
             attributes: ["id", "rating", "content", "createdAt"],
@@ -106,11 +106,19 @@ class ProductController {
       const relatedProducts = await Product.findAll({
         where: {
           [Op.or]: [
-            { productFamily: baseProduct.productFamily, id: { [Op.ne]: id } },
-            { subcategoryId: baseProduct.subcategoryId, id: { [Op.ne]: id } },
+            {
+              productFamily_ar: baseProduct.productFamily_ar,
+              id: { [Op.ne]: id },
+            },
+            {
+              productFamily_en: baseProduct.productFamily_en,
+              id: { [Op.ne]: id },
+            },
           ],
         },
-        include: [{ model: supplier, attributes: ["id", "name"] }],
+        include: [
+          { model: Supplier, attributes: ["id", "name_ar", "name_en"] },
+        ],
         limit: 10,
       });
 
@@ -226,45 +234,6 @@ class ProductController {
     } catch (error) {
       res.status(500).json({
         message: "Error deleting product",
-        error: error.message,
-      });
-    }
-  }
-  async createProductReview(req, res) {
-    try {
-      // Extract the productId from req.params
-      const { productId } = req.params;
-      const { rating, content } = req.body;
-
-      // Validate rating
-      if (!rating || rating < 1 || rating > 5) {
-        return res.status(400).json({
-          message: "Rating must be between 1 and 5",
-        });
-      }
-
-      // Check if product exists
-      const product = await Product.findByPk(productId);
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
-
-      // Create review
-      const newReview = await reviews.create({
-        productId, // Pass the actual productId
-        content,
-        rating,
-      });
-
-      res.status(201).json({
-        message: "Review added successfully",
-        review: newReview,
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error creating review",
         error: error.message,
       });
     }

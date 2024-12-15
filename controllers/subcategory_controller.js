@@ -81,7 +81,7 @@ class SubcategoryController {
         include: [
           {
             model: Category,
-            attributes: ["id", `name`],
+            attributes: ["id", "name"],
           },
         ],
       });
@@ -99,8 +99,10 @@ class SubcategoryController {
         subcategory_photo: subcategory.subcategory_photo,
         category: {
           id: subcategory.Category.id,
-          name: subcategory.Category[`name`],
+          name: subcategory.Category.name,
         },
+        productFamily_ar: subcategory.productFamily_ar,
+        productFamily_en: subcategory.productFamily_en,
       });
     } catch (error) {
       res.status(500).json({
