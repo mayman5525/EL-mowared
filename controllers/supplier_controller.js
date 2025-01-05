@@ -16,8 +16,12 @@ class SuppliersController {
   // Create a supplier review
   async createSupplierReview(req, res) {
     try {
-      const { supplierId } = req.params;
+      const { id } = req.params;
       const { content, rating } = req.body;
+
+      console.log("Request Parameters:", req.params);
+      console.log("Attempting to find supplier with ID:", id);
+      console.log("Request Body:", req.body);
 
       // Validate rating
       if (!rating || rating < 1 || rating > 5) {
@@ -26,33 +30,103 @@ class SuppliersController {
         });
       }
 
-      // Check if supplier exists
-      const supplier = await Supplier.findByPk(supplierId);
+      // Check if supplier exists with the same include structure as getSupplierById
+      const supplier = await Supplier.findByPk(id, {
+        include: [
+          {
+            model: Product,
+            attributes: [
+              "id",
+              "name_ar",
+              "name_en",
+              "description_ar",
+              "description_en",
+              "productPhoto",
+            ],
+          },
+          {
+            model: reviews,
+            attributes: ["content", "rating", "createdAt"],
+          },
+        ],
+      });
+
       if (!supplier) {
+        console.log("Supplier not found for ID:", id);
         return res.status(404).json({
           message: "Supplier not found",
+          debugInfo: {
+            supplierIdReceived: id,
+            supplierIdType: typeof id,
+            paramsReceived: req.params,
+          },
         });
       }
 
-      // Create review
+      // Create review with explicit supplier association
       const newReview = await reviews.create({
-        supplierId,
+        supplierId: parseInt(id), // Ensure ID is an integer
         content,
         rating,
+        productId: null,
       });
 
-      res.status(201).json({
+      // Fetch updated supplier data with the same structure as getSupplierById
+      const updatedSupplier = await Supplier.findByPk(id, {
+        include: [
+          {
+            model: Product,
+            attributes: [
+              "id",
+              "name_ar",
+              "name_en",
+              "description_ar",
+              "description_en",
+              "productPhoto",
+            ],
+          },
+          {
+            model: reviews,
+            attributes: ["content", "rating", "createdAt"],
+          },
+        ],
+        order: [["reviews", "createdAt", "DESC"]],
+      });
+
+      const supplierJson = updatedSupplier.toJSON();
+      const supplierReviews = supplierJson.reviews || [];
+
+      const averageRating =
+        supplierReviews.length > 0
+          ? supplierReviews.reduce((sum, review) => sum + review.rating, 0) /
+            supplierReviews.length
+          : 0;
+
+      // Match the response structure with getSupplierById
+      const response = {
         message: "Review added successfully",
         review: newReview,
-      });
+        supplierDetails: {
+          ...supplierJson,
+          averageRating,
+          totalReviews: supplierReviews.length,
+        },
+      };
+
+      res.status(201).json(response);
     } catch (error) {
+      console.error("Error creating supplier review:", error.message);
+      console.error("Full error details:", error);
       res.status(500).json({
-        message: "Error creating review",
+        message: "Error creating supplier review",
         error: error.message,
+        debugInfo: {
+          supplierIdReceived: req.params.id,
+          requestParams: req.params,
+        },
       });
     }
   }
-
   /*
   the request parameter should include the id of the supplier
   the request body should look like 
@@ -110,9 +184,13 @@ class SuppliersController {
   }
 
   // Get a specific supplier by ID with detailed information
+
   async getSupplierById(req, res) {
     try {
       const { id } = req.params;
+      console.log("Supplier ID:", id);
+
+      // Fetch supplier with products and reviews
       const supplier = await Supplier.findByPk(id, {
         include: [
           {
@@ -128,40 +206,80 @@ class SuppliersController {
           },
           {
             model: reviews,
-            attributes: ["id", "content", "rating", "createdAt"],
+            attributes: ["content", "rating", "createdAt"],
           },
         ],
-        order: [["createdAt", "DESC"]],
+        order: [["reviews", "createdAt", "DESC"]],
       });
 
-      const reviews = supplierJson.reviews || [];
-      const supplierJson = supplier.toJSON();
       if (!supplier) {
         return res.status(404).json({
           message: "Supplier not found",
         });
       }
 
-      // Convert to JSON and add calculated fields
+      // Convert supplier instance to JSON
+      const supplierJson = supplier.toJSON();
+      const supplierReviews = supplierJson.reviews || [];
 
       // Calculate average rating
-      supplierJson.averageRating =
-        reviews.length > 0
-          ? reviews.reduce((sum, review) => sum + review.rating, 0) /
-            reviews.length
+      const averageRating =
+        supplierReviews.length > 0
+          ? supplierReviews.reduce((sum, review) => sum + review.rating, 0) /
+            supplierReviews.length
           : 0;
 
-      supplierJson.totalReviews = reviews.length;
+      // Add calculated fields
+      const response = {
+        ...supplierJson,
+        averageRating,
+        totalReviews: supplierReviews.length,
+      };
 
-      res.json(supplierJson);
+      console.log(response);
+      res.json(response);
     } catch (error) {
+      console.error("Error fetching supplier details:", error.message);
       res.status(500).json({
         message: "Error fetching supplier details",
         error: error.message,
       });
     }
   }
+  async getSupplierReviews(req, res) {
+    try {
+      const { id } = req.params;
 
+      // Fetch reviews for the supplier
+      const supplierReviews = await reviews.findAll({
+        where: { supplierId: id },
+        attributes: ["id", "content", "rating", "createdAt"],
+        order: [["createdAt", "DESC"]],
+      });
+
+      if (supplierReviews.length === 0) {
+        return res.status(404).json({
+          message: "No reviews found for this supplier",
+        });
+      }
+
+      // Calculate average rating
+      const averageRating =
+        supplierReviews.reduce((sum, review) => sum + review.rating, 0) /
+        supplierReviews.length;
+
+      res.json({
+        reviews: supplierReviews,
+        averageRating,
+        totalReviews: supplierReviews.length,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching supplier reviews",
+        error: error.message,
+      });
+    }
+  }
   // Update a supplier by ID
   async updateSupplier(req, res) {
     try {

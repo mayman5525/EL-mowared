@@ -4,7 +4,6 @@ dotenv.config();
 const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 const jest = require("jest");
-const validationResult = require("express-validator");
 const multer = require("multer");
 const app = express();
 app.use(express.json());
@@ -16,7 +15,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const db = require("./models/index");
-// Update the Sequelize configuration to use environment variables
 db.sequelize
   .sync({
     alter: true,
@@ -40,18 +38,6 @@ const supplierRoutes = require("./routes/supplier_routes");
 const searchRoutes = require("./routes/search_routes");
 const uploadPhoto = require("./middleware/uploadPhotos");
 
-app.get("/api/health", async (req, res) => {
-  try {
-    await db.sequelize.authenticate();
-    res.status(200).json({ message: "Database connection successful" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Database connection failed", error: error.message });
-  }
-});
-// app.use("/admin", adminRoutes);
-// app.use("/supplier", supplierRoutes);
 app.use("/product", productRoutes);
 app.use("/category", categoryRoutes);
 app.use("/subcategories", subcategoryRoutes);

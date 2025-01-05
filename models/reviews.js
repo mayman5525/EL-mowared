@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const reviews = sequelize.define("reviews", {
+  const Reviews = sequelize.define("reviews", {
     content: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -8,11 +8,29 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    supplierId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    productId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   });
 
-  // reviews.associate = (models) => {
-  // reviews.belongsTo(models.supplier);
-  // reviews.belongsTo(models.Product);
-  // };
-  return reviews;
+  Reviews.associate = (models) => {
+    // Association with Supplier
+    Reviews.belongsTo(models.Supplier, {
+      as: "supplier",
+      foreignKey: "supplierId",
+    });
+
+    // Association with Product
+    Reviews.belongsTo(models.Product, {
+      as: "product",
+      foreignKey: "productId",
+    });
+  };
+
+  return Reviews;
 };

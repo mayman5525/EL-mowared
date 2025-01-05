@@ -266,6 +266,29 @@ class ProductController {
       });
     }
   }
+  async assignProductToCategory(req, res) {
+    try {
+      const { productId, categoryId } = req.body;
+      const product = await Product.findByPk(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      const category = await Category.findByPk(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      await product.setCategory(category);
+      res.json({
+        message: "Product assigned to category successfully",
+        product,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error assigning product to category",
+        error: error.message,
+      });
+    }
+  }
 
   async addProductPhoto(req, res) {
     try {

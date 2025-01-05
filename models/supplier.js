@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     about_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     about_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     supplerIndustries_ar: {
@@ -46,12 +46,12 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     services_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
 
     services_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     is_verified: {
