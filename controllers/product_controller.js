@@ -5,7 +5,6 @@ const {
   Subcategory,
   reviews,
 } = require("../models");
-const supplier = require("../models/supplier");
 const { Op } = require("sequelize");
 const uploadPhotos = require("../middleware/uploadPhotos");
 
@@ -321,10 +320,11 @@ class ProductController {
     }
   }
   async createProductReview(req, res) {
-    const { productId } = req.params;
+    const productId = req.params.id;
     const { content, rating } = req.body;
+    console.log(productId);
     try {
-      const product = await product.findByPk(productId);
+      const product = await Product.findByPk(productId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }

@@ -13,5 +13,13 @@ router.post(
   supplierController.updateSupplierPhoto
 );
 router.post("/:id/upload-cover", supplierController.updateSupplierCover);
+router.post(
+  "/assignSupplierToCategory",
+  supplierController.assignSupplierToCategory
+);
+router.post(
+  "/assignSupplierToSubCategory",
+  supplierController.assignSupplierToSubCategory
+);
 
 module.exports = router;

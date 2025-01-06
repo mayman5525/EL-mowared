@@ -6,11 +6,9 @@ async function search(req, res) {
     const { q } = req.query;
 
     if (!q || typeof q !== "string") {
-      return res
-        .status(400)
-        .json({
-          message: "Search query (q) is required and must be a string.",
-        });
+      return res.status(400).json({
+        message: "Search query (q) is required and must be a string.",
+      });
     }
 
     const searchPattern = `${q}%`; // Pattern for matches starting with the given letter
@@ -35,10 +33,14 @@ async function search(req, res) {
     });
 
     const [products, suppliers, categories, subcategories] = await Promise.all([
-      Product.findAll({ where: searchCondition("name") }),
-      Supplier.findAll({ where: searchCondition("name") }),
-      Category.findAll({ where: searchCondition("name") }),
-      Subcategory.findAll({ where: searchCondition("name") }),
+      Product.findAll({ where: searchCondition("name_ar") }),
+      Product.findAll({ where: searchCondition("name_en") }),
+      Supplier.findAll({ where: searchCondition("name_ar") }),
+      Supplier.findAll({ where: searchCondition("name_en") }),
+      Category.findAll({ where: searchCondition("name_ar") }),
+      Category.findAll({ where: searchCondition("name_en") }),
+      Subcategory.findAll({ where: searchCondition("name_ar") }),
+      Subcategory.findAll({ where: searchCondition("name_en") }),
     ]);
 
     const results = {

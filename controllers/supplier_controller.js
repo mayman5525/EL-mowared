@@ -16,7 +16,7 @@ class SuppliersController {
   // Create a supplier review
   async createSupplierReview(req, res) {
     try {
-      const { id } = req.params;
+      const id = req.params.id;
       const { content, rating } = req.body;
 
       console.log("Request Parameters:", req.params);
@@ -495,6 +495,95 @@ class SuppliersController {
     } catch (error) {
       res.status(500).json({
         message: "Error uploading cover photo",
+        error: error.message,
+      });
+    }
+  }
+
+  async assignSupplierToCategory(req, res) {
+    try {
+      const { supplierId, categoryId } = req.body;
+
+      // Validate input
+      if (!supplierId || !categoryId) {
+        return res.status(400).json({
+          message: "Both supplierId and categoryId are required",
+        });
+      }
+
+      // Find the supplier
+      const supplier = await Supplier.findByPk(supplierId);
+      if (!supplier) {
+        return res.status(404).json({
+          message: "Supplier not found",
+        });
+      }
+
+      // Find the category
+      const category = await Category.findByPk(categoryId);
+      if (!category) {
+        return res.status(404).json({
+          message: "Category not found",
+        });
+      }
+
+      // Associate the supplier with the category
+      await supplier.addCategory(category);
+
+      res.status(200).json({
+        message: "Supplier assigned to category successfully",
+        supplierId,
+        categoryId,
+      });
+    } catch (error) {
+      console.error("Error assigning supplier to category:", error.message);
+      res.status(500).json({
+        message: "Error assigning supplier to category",
+        error: error.message,
+      });
+    }
+  }
+
+  // Assign a supplier to a subcategory
+  async assignSupplierToSubCategory(req, res) {
+    try {
+      const { supplierId, subCategoryId } = req.body;
+
+      // Validate input
+      if (!supplierId || !subCategoryId) {
+        return res.status(400).json({
+          message: "Both supplierId and subCategoryId are required",
+        });
+      }
+
+      // Find the supplier
+      const supplier = await Supplier.findByPk(supplierId);
+      if (!supplier) {
+        return res.status(404).json({
+          message: "Supplier not found",
+        });
+      }
+
+      // Find the subcategory
+      const subCategory = await SubCategory.findByPk(subCategoryId);
+      if (!subCategory) {
+        return res.status(404).json({
+          message: "SubCategory not found",
+        });
+      }
+
+      // Associate the supplier with the subcategory
+      await supplier.addSubCategory(subCategory);
+
+      res.status(200).json({
+        message: "Supplier assigned to subcategory successfully",
+        supplierId,
+        subCategoryId,
+      });
+    } catch (error) {
+      console.error("Error assigning supplier to subcategory:", error.message);
+      res.status(500).json({
+        message: "Error assigning supplier to subcategory",
         error: error.message,
       });
     }
