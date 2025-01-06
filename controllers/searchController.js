@@ -1,4 +1,4 @@
-const { Op, Sequelize } = require("sequelize");
+const { Op } = require("sequelize");
 const { Supplier, Product, Category, Subcategory } = require("../models");
 
 async function search(req, res) {
@@ -11,42 +11,28 @@ async function search(req, res) {
       });
     }
 
-    const searchPattern = `${q.toLowerCase()}%`; // Match starting pattern, case-insensitive
+    const searchPattern = `%${q.toLowerCase()}%`; // Match anywhere in the string
 
-    const searchCondition = (field) => ({
+    const searchCondition = {
       [Op.or]: [
-        Sequelize.where(
-          Sequelize.fn("LOWER", Sequelize.json(`${field}->>'ar'`)),
-          { [Op.like]: searchPattern }
-        ),
-        Sequelize.where(
-          Sequelize.fn("LOWER", Sequelize.json(`${field}->>'en'`)),
-          { [Op.like]: searchPattern }
-        ),
+        { name_ar: { [Op.like]: searchPattern } },
+        { name_en: { [Op.like]: searchPattern } },
       ],
-    });
-
-    // Optimized query
-    const [products, suppliers, categories, subcategories] = await Promise.all([
-      Product.findAll({ where: searchCondition("name") }),
-      Supplier.findAll({ where: searchCondition("name") }),
-      Category.findAll({ where: searchCondition("name") }),
-      Subcategory.findAll({ where: searchCondition("name") }),
-    ]);
-
-    const results = {
-      products,
-      suppliers,
-      categories,
-      subcategories,
     };
+
+    const [products, suppliers, categories, subcategories] = await Promise.all([
+      Product.findAll({ where: searchCondition }),
+      Supplier.findAll({ where: searchCondition }),
+      Category.findAll({ where: searchCondition }),
+      Subcategory.findAll({ where: searchCondition }),
+    ]);
 
     res.status(200).json({
       message: "Search results",
-      results,
+      results: { products, suppliers, categories, subcategories },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Search Error:", error);
     res.status(500).json({
       message: "Error performing search",
       error: error.message,
