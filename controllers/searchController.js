@@ -11,36 +11,27 @@ async function search(req, res) {
       });
     }
 
-    const searchPattern = `${q}%`; // Pattern for matches starting with the given letter
+    const searchPattern = `${q.toLowerCase()}%`; // Match starting pattern, case-insensitive
 
     const searchCondition = (field) => ({
       [Op.or]: [
         Sequelize.where(
-          Sequelize.fn(
-            "LOWER",
-            Sequelize.cast(Sequelize.json(`${field}->>'en'`), "text")
-          ),
-          { [Op.like]: searchPattern.toLowerCase() }
+          Sequelize.fn("LOWER", Sequelize.json(`${field}->>'ar'`)),
+          { [Op.like]: searchPattern }
         ),
         Sequelize.where(
-          Sequelize.fn(
-            "LOWER",
-            Sequelize.cast(Sequelize.json(`${field}->>'ar'`), "text")
-          ),
-          { [Op.like]: searchPattern.toLowerCase() }
+          Sequelize.fn("LOWER", Sequelize.json(`${field}->>'en'`)),
+          { [Op.like]: searchPattern }
         ),
       ],
     });
 
+    // Optimized query
     const [products, suppliers, categories, subcategories] = await Promise.all([
-      Product.findAll({ where: searchCondition("name_ar") }),
-      Product.findAll({ where: searchCondition("name_en") }),
-      Supplier.findAll({ where: searchCondition("name_ar") }),
-      Supplier.findAll({ where: searchCondition("name_en") }),
-      Category.findAll({ where: searchCondition("name_ar") }),
-      Category.findAll({ where: searchCondition("name_en") }),
-      Subcategory.findAll({ where: searchCondition("name_ar") }),
-      Subcategory.findAll({ where: searchCondition("name_en") }),
+      Product.findAll({ where: searchCondition("name") }),
+      Supplier.findAll({ where: searchCondition("name") }),
+      Category.findAll({ where: searchCondition("name") }),
+      Subcategory.findAll({ where: searchCondition("name") }),
     ]);
 
     const results = {
