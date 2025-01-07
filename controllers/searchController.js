@@ -1,4 +1,5 @@
-const { Op } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
+
 const { Supplier, Product, Category, Subcategory } = require("../models");
 
 async function search(req, res) {
@@ -15,11 +16,14 @@ async function search(req, res) {
 
     const searchCondition = {
       [Op.or]: [
-        { name_ar: { [Op.like]: searchPattern } },
-        { name_en: { [Op.like]: searchPattern } },
+        Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("name_ar")), {
+          [Op.like]: searchPattern,
+        }),
+        Sequelize.where(Sequelize.fn("LOWER", Sequelize.col("name_en")), {
+          [Op.like]: searchPattern,
+        }),
       ],
     };
-
     const [products, suppliers, categories, subcategories] = await Promise.all([
       Product.findAll({ where: searchCondition }),
       Supplier.findAll({ where: searchCondition }),
