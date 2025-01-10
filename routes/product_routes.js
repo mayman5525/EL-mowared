@@ -13,5 +13,9 @@ router.post(
   "/assignProductToCategory",
   productController.assignProductToCategory
 );
+router.post(
+  "/unassignProductFromSupplier",
+  productController.unassignProductFromSupplier
+);
 
 module.exports = router;

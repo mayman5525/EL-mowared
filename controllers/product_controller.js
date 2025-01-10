@@ -265,6 +265,37 @@ class ProductController {
       });
     }
   }
+  async unassignProductFromSupplier(req, res) {
+    try {
+      const { productId } = req.body;
+  
+      // Find the product by ID
+      const product = await Product.findByPk(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      // Check if the product has a supplier assigned
+      const supplier = await product.getSupplier();
+      if (!supplier) {
+        return res.status(400).json({ message: "Product is not assigned to any supplier" });
+      }
+  
+      // Remove the association between the product and the supplier
+      await product.setSupplier(null);
+  
+      res.json({
+        message: "Product unassigned from supplier successfully",
+        product,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error unassigning product from supplier",
+        error: error.message,
+      });
+    }
+  }
+  
   async assignProductToCategory(req, res) {
     try {
       const { productId, categoryId } = req.body;
