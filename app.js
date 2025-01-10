@@ -9,8 +9,8 @@ const app = express();
 app.use(express.json());
 const corsOptions = {
   origin: ["http://localhost:3000", "https://mowareed.vercel.app"],
-  methods: ["GET", "POST", "PATCH", "DELETE"], // You can adjust the methods as needed
-  allowedHeaders: ["Content-Type", "Authorization"], // Add any other headers as needed
+  methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 
