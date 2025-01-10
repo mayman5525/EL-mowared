@@ -54,12 +54,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     productPhoto: {
       type: DataTypes.STRING,
-      validate: {
-        isUrl: {
-          msg: "Product photo must be a valid URL or file path",
-          args: true,
-        },
-      },
+
       allowNull: true,
     },
     is_verified: {

@@ -26,22 +26,12 @@ module.exports = (sequelize, DataTypes) => {
     },
     profilePhoto: {
       type: DataTypes.STRING,
-      validate: {
-        isUrl: {
-          msg: "Profile photo must be a valid URL or file path",
-          args: true,
-        },
-      },
+
       allowNull: true,
     },
     coverPhoto: {
       type: DataTypes.STRING,
-      validate: {
-        isUrl: {
-          msg: "cover photo must be a valid URL or file path",
-          args: true,
-        },
-      },
+
       allowNull: true,
     },
 
