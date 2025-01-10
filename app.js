@@ -8,7 +8,11 @@ const multer = require("multer");
 const app = express();
 app.use(express.json());
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://mowareed.vercel.app"],
+  origin: [
+    "http://localhost:3000",
+    "https://mowareed.vercel.app",
+    "https://www.elmowareed.com",
+  ],
   methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
