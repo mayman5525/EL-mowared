@@ -268,22 +268,24 @@ class ProductController {
   async unassignProductFromSupplier(req, res) {
     try {
       const { productId } = req.body;
-  
+
       // Find the product by ID
       const product = await Product.findByPk(productId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-  
+
       // Check if the product has a supplier assigned
       const supplier = await product.getSupplier();
       if (!supplier) {
-        return res.status(400).json({ message: "Product is not assigned to any supplier" });
+        return res
+          .status(400)
+          .json({ message: "Product is not assigned to any supplier" });
       }
-  
+
       // Remove the association between the product and the supplier
       await product.setSupplier(null);
-  
+
       res.json({
         message: "Product unassigned from supplier successfully",
         product,
@@ -295,7 +297,7 @@ class ProductController {
       });
     }
   }
-  
+
   async assignProductToCategory(req, res) {
     try {
       const { productId, categoryId } = req.body;
@@ -320,32 +322,27 @@ class ProductController {
     }
   }
 
-  async addProductPhoto(req, res) {
+  async uploadProductPhoto(req, res) {
     try {
-      const { id } = req.params;
-
-      const product = await Product.findByPk(id);
+      const { productId } = req.params;
+      const { photo } = req.files;
+      const product = await Product.findByPk(productId);
       if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-
-      uploadPhotos(req, res, async (err) => {
-        if (err) {
-          return res.status(400).json({ message: err.message });
-        }
-
-        const photoUrl = req.file.path;
-        product.productPhoto = photoUrl;
-        await product.save();
-
-        res.status(200).json({
-          message: "Photo added successfully",
-          product,
+        return res.status(404).json({
+          message: "Product not found",
         });
+      }
+      const photoPath = await uploadPhoto(photo);
+      product.productPhoto = photoPath;
+      await product.save();
+      res.status(200).json({
+        message: "Product photo uploaded successfully",
+        product,
       });
     } catch (error) {
+      console.error("Error uploading product photo:", error.message);
       res.status(500).json({
-        message: "Error adding photo to product",
+        message: "Error uploading product photo",
         error: error.message,
       });
     }

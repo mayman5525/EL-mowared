@@ -52,6 +52,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    category_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    subcategory_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   });
 
   // Add associations

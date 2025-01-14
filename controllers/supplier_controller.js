@@ -1,8 +1,20 @@
 const { Model } = require("sequelize");
-const { Supplier, Product, reviews } = require("../models");
+const {
+  Supplier,
+  Product,
+  reviews,
+  Category,
+  Subcategory,
+} = require("../models");
 const cloudinary = require("cloudinary").v2; // Assuming you are using Cloudinary for image upload
 const { Op } = require("sequelize");
-const uploadPhotos = require("../middleware/uploadPhotos");
+const uploadPhotos = require("../utils/uploadUTIL");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 class SuppliersController {
   /*
@@ -153,6 +165,8 @@ class SuppliersController {
         services_en,
         is_verified,
         is_active,
+        category_id,
+        subcategory_id,
       } = req.body;
 
       // Create supplier
@@ -169,6 +183,8 @@ class SuppliersController {
         coverPhoto: coverPhoto,
         is_verified: is_verified,
         is_active: is_active,
+        category_id: category_id,
+        subcategory_id: subcategory_id,
       });
 
       res.status(201).json({
@@ -584,6 +600,49 @@ class SuppliersController {
       console.error("Error assigning supplier to subcategory:", error.message);
       res.status(500).json({
         message: "Error assigning supplier to subcategory",
+        error: error.message,
+      });
+    }
+  }
+
+  async uploadSupplierPhoto(req, res) {
+    try {
+      const { file } = req;
+      const { id: supplierId } = req.params; // Supplier ID passed in params
+
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      if (!supplierId) {
+        return res.status(400).json({ message: "Supplier ID is required" });
+      }
+
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "supplier_photos", // Optional folder in Cloudinary
+      });
+
+      // Clean up the temporary file after upload
+      fs.unlinkSync(file.path);
+
+      // Update the Supplier model
+      const [updated] = await Supplier.update(
+        { profilePhoto: result.secure_url },
+        { where: { id: supplierId } }
+      );
+
+      if (updated === 0) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+
+      res.status(200).json({
+        message: "Supplier photo uploaded successfully",
+        url: result.secure_url,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error uploading supplier photo",
         error: error.message,
       });
     }

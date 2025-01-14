@@ -1,6 +1,13 @@
 const express = require("express");
 const supplierController = require("../controllers/supplier_controller");
 const router = express.Router();
+const { uploadSupplierPhoto } = require("../controllers/supplier_controller");
+const { upload } = require("../utils/uploadUTIL");
+router.post(
+  "/upload-supplier-photo/:id",
+  upload.single("file"),
+  uploadSupplierPhoto
+);
 
 router.get("/", supplierController.getAllSuppliers);
 router.get("/:id", supplierController.getSupplierById);
