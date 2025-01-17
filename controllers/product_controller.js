@@ -155,11 +155,11 @@ class ProductController {
         homeCountry_en,
         size_ar,
         size_en,
-        productPhoto,
         categoryId,
         subcategoryId,
         supplierId,
       } = req.body;
+      const productPhoto = req.files?.productPhoto?.[0]?.path || null;
 
       const newProduct = await Product.create({
         name_ar: name_ar,

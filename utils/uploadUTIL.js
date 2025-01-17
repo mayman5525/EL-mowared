@@ -1,57 +1,36 @@
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const { uploader } = cloudinary;
-
 const dotenv = require("dotenv");
+
 dotenv.config();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Temporary folder to store uploads
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-cloudinary.image("landmannalaugar_iceland.jpg", {
-  transformation: [
-    { width: 1000, crop: "scale" },
-    { quality: "auto" },
-    { fetch_format: "auto" },
-  ],
-});
-cloudinary.api.ping((error, result) => {
-  if (error) {
-    console.error("Cloudinary setup error:", error);
-  } else {
-    console.log("Cloudinary setup verified:", result);
-  }
+  secure: true,
 });
 
-const uploadPhoto = async (filePath, folder) => {
-  try {
-    const result = await uploader.upload(filePath, {
-      folder: folder, // e.g., "product_photos" or "supplier_photos"
-    });
-    console.log("Upload successful:", result);
-    return result.url; // Return the uploaded file URL
-  } catch (error) {
-    console.error("Upload failed:", error);
-    throw error;
-  }
-};
+// Configure Multer to use Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    const folder = req.params.folder || "uploads"; // Dynamic folder selection
+    return {
+      folder,
+      format: "jpeg", // Convert all images to JPEG
+      public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
+      transformation: [
+        { width: 1200, height: 1200, crop: "fill", gravity: "auto" },
+      ],
+    };
+  },
+});
 
-// Set up Multer
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+  storage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -59,6 +38,7 @@ const upload = multer({
       cb(new Error("Only image files are allowed!"), false);
     }
   },
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
 });
 
-module.exports = { upload, uploadPhoto };
+module.exports = { upload, cloudinary };
