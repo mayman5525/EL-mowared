@@ -1,11 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
   const Supplier = sequelize.define("Supplier", {
     name_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     name_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     about_ar: {
@@ -17,11 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     supplerIndustries_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     supplerIndustries_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     profilePhoto: {

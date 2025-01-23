@@ -3,56 +3,51 @@ const { types } = require("pg");
 module.exports = (sequelize, DataTypes) => {
   const Product = sequelize.define("Product", {
     name_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     name_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     description_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     description_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     productFamily_ar: {
-      type: DataTypes.STRING,
-      validate: {
-        len: [0, 100],
-      },
+      type: DataTypes.TEXT,
     },
     productFamily_en: {
-      type: DataTypes.STRING,
-      validate: {
-        len: [0, 100], // Optional: Limit product family name length
-      },
+      type: DataTypes.TEXT,
     },
     stockQuantity: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      validate: {
-        min: 0, // Ensure stock quantity is not negative
-        isInt: true,
-      },
     },
     homeCountry_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     homeCountry_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     size_ar: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     size_en: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     productPhoto: {
+      type: DataTypes.STRING,
+
+      allowNull: true,
+    },
+    coverPhoto: {
       type: DataTypes.STRING,
 
       allowNull: true,

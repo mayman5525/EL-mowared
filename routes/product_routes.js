@@ -13,6 +13,7 @@ router.post(
       name: "productPhoto",
       maxCount: 1,
     },
+    { name: "coverPhoto", maxCount: 1 },
   ]),
   productController.createProduct
 );

@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Reviews = sequelize.define("reviews", {
     content: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     rating: {
