@@ -544,6 +544,99 @@ class SuppliersController {
       });
     }
   }
+  async getSupplierIndustriesAr(req, res) {
+    try {
+      const suppliers = await Supplier.findAll({
+        attributes: [
+          "id",
+          "name_ar",
+          "name_en",
+          "profilePhoto",
+          "supplerIndustries_ar",
+        ],
+      });
+
+      const industries = {};
+
+      suppliers.forEach((supplier) => {
+        if (supplier.supplerIndustries_ar) {
+          // Split the string by delimiters (-, ,, /)
+          const industryList = supplier.supplerIndustries_ar
+            .split(/[-,\/]/)
+            .map((item) => item.trim());
+
+          industryList.forEach((industry) => {
+            if (industry) {
+              // Ensure the industry is not an empty string
+              if (!industries[industry]) {
+                industries[industry] = [];
+              }
+              industries[industry].push({
+                id: supplier.id,
+                name_ar: supplier.name_ar,
+                name_en: supplier.name_en,
+                profilePhoto: supplier.profilePhoto,
+              });
+            }
+          });
+        }
+      });
+
+      res.json(industries);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching Arabic industries",
+        error: error.message,
+      });
+    }
+  }
+
+  async getSupplierIndustriesEn(req, res) {
+    try {
+      const suppliers = await Supplier.findAll({
+        attributes: [
+          "id",
+          "name_ar",
+          "name_en",
+          "profilePhoto",
+          "supplerIndustries_en",
+        ],
+      });
+
+      const industries = {};
+
+      suppliers.forEach((supplier) => {
+        if (supplier.supplerIndustries_en) {
+          // Split the string by delimiters (-, ,, /)
+          const industryList = supplier.supplerIndustries_en
+            .split(/[-,\/]/)
+            .map((item) => item.trim());
+
+          industryList.forEach((industry) => {
+            if (industry) {
+              // Ensure the industry is not an empty string
+              if (!industries[industry]) {
+                industries[industry] = [];
+              }
+              industries[industry].push({
+                id: supplier.id,
+                name_ar: supplier.name_ar,
+                name_en: supplier.name_en,
+                profilePhoto: supplier.profilePhoto,
+              });
+            }
+          });
+        }
+      });
+
+      res.json(industries);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching English industries",
+        error: error.message,
+      });
+    }
+  }
 
   async uploadSupplierPhoto(req, res) {
     try {

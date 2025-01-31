@@ -373,5 +373,107 @@ class ProductController {
       });
     }
   }
+
+  async getProductFamiliesAr(req, res) {
+    try {
+      const products = await Product.findAll({
+        attributes: [
+          "id",
+          "name_ar",
+          "name_en",
+          "productPhoto",
+          "productFamily_ar",
+          "stockQuantity",
+          "SupplierId",
+        ],
+      });
+
+      const productFamilies = {};
+
+      products.forEach((product) => {
+        if (product.productFamily_ar) {
+          // Split the string by delimiters (-, ,, /)
+          const familyList = product.productFamily_ar
+            .split(/[-,\/]/)
+            .map((item) => item.trim());
+
+          familyList.forEach((family) => {
+            if (family) {
+              // Ensure the family is not an empty string
+              if (!productFamilies[family]) {
+                productFamilies[family] = [];
+              }
+              productFamilies[family].push({
+                id: product.id,
+                name_ar: product.name_ar,
+                name_en: product.name_en,
+                productPhoto: product.productPhoto,
+                stockQuantity: product.stockQuantity,
+                supplierId: product.SupplierId,
+              });
+            }
+          });
+        }
+      });
+
+      res.json(productFamilies);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching Arabic product families",
+        error: error.message,
+      });
+    }
+  }
+
+  async getProductFamiliesEn(req, res) {
+    try {
+      const products = await Product.findAll({
+        attributes: [
+          "id",
+          "name_ar",
+          "name_en",
+          "productPhoto",
+          "productFamily_en",
+          "stockQuantity",
+          "SupplierId",
+        ],
+      });
+
+      const productFamilies = {};
+
+      products.forEach((product) => {
+        if (product.productFamily_en) {
+          // Split the string by delimiters (-, ,, /)
+          const familyList = product.productFamily_en
+            .split(/[-,\/]/)
+            .map((item) => item.trim());
+
+          familyList.forEach((family) => {
+            if (family) {
+              // Ensure the family is not an empty string
+              if (!productFamilies[family]) {
+                productFamilies[family] = [];
+              }
+              productFamilies[family].push({
+                id: product.id,
+                name_ar: product.name_ar,
+                name_en: product.name_en,
+                productPhoto: product.productPhoto,
+                stockQuantity: product.stockQuantity,
+                supplierId: product.SupplierId,
+              });
+            }
+          });
+        }
+      });
+
+      res.json(productFamilies);
+    } catch (error) {
+      res.status(500).json({
+        message: "Error fetching English product families",
+        error: error.message,
+      });
+    }
+  }
 }
 module.exports = new ProductController();
